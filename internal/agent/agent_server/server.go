@@ -32,6 +32,8 @@ type proxyServer struct {
 }
 
 func (s *proxyServer) GetDeviceInfo(ctx context.Context, request *pb.GetDeviceInfoRequest) (*pb.GetDeviceInfoResponse, error) {
+	log.Printf("GetDeviceInfo called")
+
 	// Fetch device info from the SwitchAgent
 	device, status := s.SwitchAgent.GetDeviceInfo(ctx)
 	if status != nil {
@@ -57,6 +59,8 @@ func (s *proxyServer) GetDeviceInfo(ctx context.Context, request *pb.GetDeviceIn
 }
 
 func (s *proxyServer) ListInterfaces(ctx context.Context, request *pb.ListInterfacesRequest) (*pb.ListInterfacesResponse, error) {
+	log.Printf("ListInterfaces called")
+
 	interfaceList, status := s.SwitchAgent.ListInterfaces(ctx)
 	if status != nil {
 		return &pb.ListInterfacesResponse{
@@ -72,8 +76,8 @@ func (s *proxyServer) ListInterfaces(ctx context.Context, request *pb.ListInterf
 		interfaces = append(interfaces, &pb.Interface{
 			Name:              iface.Name,
 			MacAddress:        iface.MacAddress,
-			OperationalStatus: iface.OperationStatus,
-			AdminStatus:       iface.AdminStatus,
+			OperationalStatus: string(iface.OperationStatus),
+			AdminStatus:       string(iface.AdminStatus),
 		})
 	}
 
@@ -87,12 +91,14 @@ func (s *proxyServer) ListInterfaces(ctx context.Context, request *pb.ListInterf
 }
 
 func (s *proxyServer) SetInterfaceAdminStatus(ctx context.Context, request *pb.SetInterfaceAdminStatusRequest) (*pb.SetInterfaceAdminStatusResponse, error) {
+	log.Printf("SetInterfaceAdminStatus called: interface=%s, status=%s", request.GetInterfaceName(), request.GetAdminStatus())
+
 	iface, status := s.SwitchAgent.SetInterfaceAdminStatus(ctx, &agent.Interface{
 		TypeMeta: agent.TypeMeta{
 			Kind: agent.InterfaceKind,
 		},
 		Name:        request.GetInterfaceName(),
-		AdminStatus: request.GetAdminStatus(),
+		AdminStatus: agent.DeviceStatus(request.GetAdminStatus()),
 	})
 
 	if status != nil {
@@ -112,13 +118,15 @@ func (s *proxyServer) SetInterfaceAdminStatus(ctx context.Context, request *pb.S
 		Interface: &pb.Interface{
 			Name:              iface.Name,
 			MacAddress:        "",
-			OperationalStatus: iface.OperationStatus,
-			AdminStatus:       iface.AdminStatus,
+			OperationalStatus: string(iface.OperationStatus),
+			AdminStatus:       string(iface.AdminStatus),
 		},
 	}, nil
 }
 
 func (s *proxyServer) ListPorts(ctx context.Context, request *pb.ListPortsRequest) (*pb.ListPortsResponse, error) {
+	log.Printf("ListPorts called")
+
 	portList, status := s.SwitchAgent.ListPorts(ctx)
 	if status != nil {
 		return &pb.ListPortsResponse{
@@ -147,6 +155,8 @@ func (s *proxyServer) ListPorts(ctx context.Context, request *pb.ListPortsReques
 }
 
 func (s *proxyServer) GetInterface(ctx context.Context, request *pb.GetInterfaceRequest) (*pb.GetInterfaceResponse, error) {
+	log.Printf("GetInterface called: interface=%s", request.GetInterfaceName())
+
 	iface, status := s.SwitchAgent.GetInterface(ctx, &agent.Interface{
 		TypeMeta: agent.TypeMeta{
 			Kind: agent.InterfaceKind,
@@ -170,13 +180,15 @@ func (s *proxyServer) GetInterface(ctx context.Context, request *pb.GetInterface
 		Interface: &pb.Interface{
 			Name:              iface.Name,
 			MacAddress:        iface.MacAddress,
-			OperationalStatus: iface.OperationStatus,
-			AdminStatus:       iface.AdminStatus,
+			OperationalStatus: string(iface.OperationStatus),
+			AdminStatus:       string(iface.AdminStatus),
 		},
 	}, nil
 }
 
 func (s *proxyServer) GetInterfaceNeighbor(ctx context.Context, request *pb.GetInterfaceNeighborRequest) (*pb.GetInterfaceNeighborResponse, error) {
+	log.Printf("GetInterfaceNeighbor called: interface=%s", request.GetInterfaceName())
+
 	ifaceNeighbor, status := s.SwitchAgent.GetInterfaceNeighbor(ctx, &agent.Interface{
 		TypeMeta: agent.TypeMeta{
 			Kind: agent.InterfaceKind,
